@@ -11,6 +11,10 @@ import { createrScene } from '../scenes/createTask';
 
 import { listeners } from '../listeners';
 
+// General
+import { generalUsage } from '../generalUsage/listeners';
+import { generalUsageCommands } from '../generalUsage/commands/commands';
+
 dotenv.config({ path: '../../.env' });
 
 const bot = new Telegraf<MyContext>(process.env.BOT_TOKEN);
@@ -27,12 +31,17 @@ bot.use(start);
 bot.use(listeners);
 bot.use(tasks);
 
+bot.use(generalUsageCommands);
+bot.use(generalUsage);
+
 bot.launch();
 
-bot.catch((error, ctx) => {
+bot.catch(async (error, ctx) => {
   bot.stop();
 
   console.error(error);
+
+  await ctx.replyWithHTML(`Произошла ошибка - ${error}`);
 
   bot.launch();
 }); // Handle Error
