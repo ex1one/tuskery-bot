@@ -14,6 +14,7 @@ import { listeners } from '../listeners';
 // General
 import { generalUsage } from '../generalUsage/listeners';
 import { generalUsageCommands } from '../generalUsage/commands/commands';
+import { logger } from '../logger/pino';
 
 dotenv.config({ path: '../../.env' });
 
@@ -50,12 +51,12 @@ if (process.env.environment == 'PRODUCTION') {
       },
     })
     .then(() => {
-      console.info(`The bot ${bot.botInfo.username} is running on server`);
+      logger.info(`The bot ${bot.botInfo.username} is running on server`);
     });
 } else {
   // if local use Long-polling
   bot.launch().then(() => {
-    console.info(`The bot ${bot.botInfo.username} is running locally`);
+    logger.info(`The bot ${bot.botInfo.username} is running locally`);
   });
 }
 

@@ -6,6 +6,8 @@ import { getTasks } from '../utils/getTasks';
 import { ITEMS_PER_PAGE } from '../constants';
 import prisma from '../../prisma';
 
+import { logger } from '../logger/pino';
+
 export const createrScene = new Scenes.BaseScene<MyContext>('createScene');
 
 createrScene.enter(async (ctx) => await ctx.reply(ctx.i18next.t('text.createNewTask')));
@@ -26,9 +28,15 @@ createrScene.leave(async (ctx) => {
   const { text } = deunionize(ctx.message);
   const { id, username } = deunionize(ctx.chat);
 
-  await prisma.task.create({ data: { name: text, channelId: `${id}`, author: username } });
+  try {
+    await prisma.task.create({ data: { name: text, channelId: `${id}`, author: username } });
 
-  await ctx.reply(ctx.i18next.t('text.createNewTaskSuccess', { name: text }), MenuKeyboards(ctx));
+    await ctx.reply(ctx.i18next.t('text.createNewTaskSuccess', { name: text }), MenuKeyboards(ctx));
 
-  await getTasks({ page: 0, ctx, ITEMS_PER_PAGE });
+    await getTasks({ page: 0, ctx, ITEMS_PER_PAGE });
+  } catch (error) {
+    logger.error({ error }, 'Error with task creation');
+
+    await ctx.reply('Произошла ошибка, повторите ещё раз'); // Сделать для ошибок, отдельные переводы
+  }
 });

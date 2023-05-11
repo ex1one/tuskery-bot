@@ -6,11 +6,14 @@ import { getParams } from '../utils/getParams';
 
 import prisma from '../../prisma';
 import { ITEMS_PER_PAGE } from '../constants';
+import { logger } from '../logger/pino';
 
 const composer = new Composer<MyContext>();
 
 // Get List use Command "/list"
-composer.command('list', async (ctx) => await getTasks({ page: 0, ctx, ITEMS_PER_PAGE }));
+composer.command('list', async (ctx) => {
+  await getTasks({ page: 0, ctx, ITEMS_PER_PAGE });
+});
 
 // Get List used action "list"
 composer.action('list', async (ctx) => {
@@ -55,31 +58,43 @@ composer.action(/^taskId=(0|([1-9]\d{0,3}))?&page=(0|([1-9]\d{0,3}))?$/, async (
 
 // Может быть ошибка при измении таски, обработать нужно
 composer.action(/^complete=(0|([1-9]\d{0,3}))?&page=(0|([1-9]\d{0,3}))?$/, async (ctx) => {
-  const params = ctx.match[0].split('&');
-  const { page, complete } = getParams<{ page: number; complete: number }>(params);
+  try {
+    const params = ctx.match[0].split('&');
+    const { page, complete } = getParams<{ page: number; complete: number }>(params);
 
-  await prisma.task.update({
-    where: { id: complete },
-    data: {
-      state: 'RESOLVED',
-      resolvedAt: new Date(),
-    },
-  });
+    await prisma.task.update({
+      where: { id: complete },
+      data: {
+        state: 'RESOLVED',
+        resolvedAt: new Date(),
+      },
+    });
 
-  await ctx.answerCbQuery(ctx.i18next.t('text.completeTask'));
-  await getTasks({ page, ctx, ITEMS_PER_PAGE, prevMessage: true });
+    await ctx.answerCbQuery(ctx.i18next.t('text.completeTask'));
+
+    await getTasks({ page, ctx, ITEMS_PER_PAGE, prevMessage: true });
+  } catch (error) {
+    logger.error({ error }, 'Error updating the task');
+
+    await ctx.answerCbQuery('Произошла ошибка, повторите ещё раз'); // Сделать для ошибок, отдельные переводы
+  }
 });
 
 // Delete task
 composer.action(/^deleteId=(0|([1-9]\d{0,3}))?&page=(0|([1-9]\d{0,3}))?$/, async (ctx) => {
-  const params = ctx.match[0].split('&');
-  const { deleteId, page } = getParams<{ page: number; deleteId: number }>(params);
+  try {
+    const params = ctx.match[0].split('&');
+    const { deleteId, page } = getParams<{ page: number; deleteId: number }>(params);
 
-  const deletedTask = await prisma.task.delete({ where: { id: deleteId } });
+    await prisma.task.delete({ where: { id: deleteId } });
 
-  if (deletedTask) {
-    await ctx.answerCbQuery('Задача успешно удалена');
+    await ctx.answerCbQuery('Задача успешно удалена'); // Сделать для ошибок, отдельные переводы
+
     await getTasks({ page, ctx, ITEMS_PER_PAGE, prevMessage: true });
+  } catch (error) {
+    logger.error({ error }, 'Error deleting a task');
+
+    await ctx.answerCbQuery('Произошла ошибка, повторите ещё раз'); // Сделать для ошибок, отдельные переводы
   }
 });
 
