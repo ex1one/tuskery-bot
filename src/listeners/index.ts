@@ -8,7 +8,7 @@ const composer = new Composer<MyContext>();
 
 composer.hears(match('menuButtons.tasks'), async (ctx) => await getTasks({ page: 0, ctx, ITEMS_PER_PAGE }));
 
-composer.hears(match('menuButtons.task'), async (ctx) => ctx.scene.enter('createScene'));
+composer.hears(match('menuButtons.createTask'), async (ctx) => ctx.scene.enter('createScene'));
 
 composer.hears(match('menuButtons.help'), reply('information'));
 composer.hears(match('menuButtons.settings'), async (ctx) => {

@@ -7,21 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id             Int      @id @default(autoincrement())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  name           String?
-  role           String   @default("USER")
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String?
+  role      String   @default("USER")
 
-  ts_tasks  Task[]
+  ts_tasks Task[]
 }
 
 model Task {
-  id        Int           @id @default(autoincrement())
-  name      String        @default("")
-  channelId Int?
+  id        Int        @id @default(autoincrement())
+  name      String     @default("")
+  channelId String?
   channel   Channel?   @relation(fields: [channelId], references: [id])
   state     TaskState?
   link      String?
@@ -30,17 +29,18 @@ model Task {
   assignee String?
   body     String  @default("")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
 
-  tags   Tag[]
+  tags Tag[]
 
-  User   User?    @relation(fields: [userId], references: [id])
+  User   User? @relation(fields: [userId], references: [id])
   userId Int?
 }
 
 model Channel {
-  id   Int    @id
+  id   String    @id
   name String @default("")
   uri  String @default("")
 
@@ -52,9 +52,9 @@ model Channel {
 }
 
 model Tag {
-  id        Int         @id @default(autoincrement())
-  name      String      @default("")
-  channelId Int?
+  id        Int      @id @default(autoincrement())
+  name      String   @default("")
+  channelId String?
   channel   Channel? @relation(fields: [channelId], references: [id])
 
   tasks Task[]
@@ -69,4 +69,3 @@ enum TaskState {
   RESOLVED
   TO_BE_REVIEWED
 }
-

@@ -15,7 +15,7 @@ const ru = {
       nextPage: 'Следующая страница',
     },
     text: {
-      task: 'Задача "{{ name }}"',
+      task: 'Задача "{{ name }} {{ state }}"',
       completeTask: 'Задача помечана как завершённая',
       tasksList: '<b>Задачи</b>\n{{ textTasks }}',
       createNewTask: '/create Создание новой задачи',
@@ -38,7 +38,7 @@ const en = {
       nextPage: 'Next Page',
     },
     text: {
-      task: 'Task "{{ name }}"',
+      task: 'Task "{{ name }} {{ state }}"',
       completeTask: 'The task is marked as completed',
       tasksList: '<b>Tasks</b>\n{{ textTasks }}',
       createNewTask: '/create Create New Task',

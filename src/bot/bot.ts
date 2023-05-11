@@ -17,7 +17,14 @@ import { generalUsageCommands } from '../generalUsage/commands/commands';
 
 dotenv.config({ path: '../../.env' });
 
-const bot = new Telegraf<MyContext>(process.env.BOT_TOKEN);
+let bot;
+
+if (process.env.environment == 'PRODUCTION') {
+  bot = new Telegraf<MyContext>(process.env.BOT_TOKEN);
+  bot.startWebhook(`/${process.env.BOT_TOKEN}`, null, 3019);
+} else {
+  bot = new Telegraf<MyContext>(process.env.BOT_TOKEN);
+}
 
 const stage = new Scenes.Stage<MyContext>([createrScene]);
 
@@ -34,7 +41,23 @@ bot.use(tasks);
 bot.use(generalUsageCommands);
 bot.use(generalUsage);
 
-bot.launch();
+if (process.env.environment == 'PRODUCTION') {
+  bot
+    .launch({
+      webhook: {
+        domain: 'tuskery.ex1one.ru', // Your domain URL (where server code will be deployed)
+        port: 3019,
+      },
+    })
+    .then(() => {
+      console.info(`The bot ${bot.botInfo.username} is running on server`);
+    });
+} else {
+  // if local use Long-polling
+  bot.launch().then(() => {
+    console.info(`The bot ${bot.botInfo.username} is running locally`);
+  });
+}
 
 bot.catch(async (error, ctx) => {
   bot.stop();

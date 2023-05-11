@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "prisma generate && nodemon src/bot/bot.ts",
+    "start": "prisma generate && nodemon src/bot/bot.ts --port 3017",
     "lint": "eslint src/**/*.ts",
     "format": "eslint src/**/*.ts --fix"
   },

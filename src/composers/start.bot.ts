@@ -7,23 +7,18 @@ import prisma from '../../prisma';
 
 const composer = new Composer<MyContext>();
 
-const createUser = async ({ id, name }) => {
-  const user = await prisma.user.findFirst({ where: { name } });
-  const channel = await prisma.channel.findFirst({ where: { id } });
+const createChannel = async ({ id, name }) => {
+  const channel = await prisma.channel.findFirst({ where: { id, name } });
 
   if (channel) return;
 
-  if (!user) {
-    await prisma.user.create({ data: { name } });
-  }
-
-  await prisma.channel.create({ data: { id } });
+  await prisma.channel.create({ data: { id, name } });
 };
 
 composer.command('start', async (ctx) => {
   const { id, username } = deunionize(ctx.chat);
 
-  await createUser({ id: Math.abs(id), name: username });
+  await createChannel({ id: `${id}`, name: username });
 
   await ctx.reply(ctx.i18next.t('information'), MenuKeyboards(ctx));
 });

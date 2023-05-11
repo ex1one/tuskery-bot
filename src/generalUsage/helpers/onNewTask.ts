@@ -21,7 +21,7 @@ export async function onNewTask(ctx: MyContext) {
       name,
       assignee,
       body: lines.join('\n'),
-      channelId: chat.id,
+      channelId: `${chat.id}`,
       tags: {
         connectOrCreate: tags
           .map((t) => t.trim().toLowerCase())

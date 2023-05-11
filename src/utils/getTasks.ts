@@ -6,12 +6,13 @@ interface getTasksProps {
   page: number;
   ITEMS_PER_PAGE: number;
   ctx: MyContext;
+  prevMessage?: boolean;
 }
 
-export const getTasks = async ({ page, ctx, ITEMS_PER_PAGE }: getTasksProps) => {
+export const getTasks = async ({ page, ctx, ITEMS_PER_PAGE, prevMessage = false }: getTasksProps) => {
   const [tasks, count] = await prisma.$transaction([
-    prisma.task.findMany({ where: { channelId: ctx.chat.id }, skip: page * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE }),
-    prisma.task.count(),
+    prisma.task.findMany({ where: { channelId: `${ctx.chat.id}` }, skip: page * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE }),
+    prisma.task.count({ where: { channelId: `${ctx.chat.id}` } }),
   ]);
 
   const hasMore = count - page * ITEMS_PER_PAGE > 5;
@@ -29,14 +30,24 @@ export const getTasks = async ({ page, ctx, ITEMS_PER_PAGE }: getTasksProps) => 
   }
 
   if (!count) {
-    return await ctx.editMessageText(
-      'Не найдено никаких задач, попробуйте добавить',
-      Markup.inlineKeyboard([Markup.button.callback('Добавить задачу', 'createTask')]),
-    );
+    return prevMessage
+      ? await ctx.editMessageText(
+          'Не найдено никаких задач, попробуйте добавить',
+          Markup.inlineKeyboard([Markup.button.callback('Добавить задачу', 'createTask')]),
+        )
+      : await ctx.reply(
+          'Не найдено никаких задач, попробуйте добавить',
+          Markup.inlineKeyboard([Markup.button.callback('Добавить задачу', 'createTask')]),
+        );
   }
 
-  return await ctx.replyWithHTML(ctx.i18next.t('text.tasksList', { textTasks }), {
-    parse_mode: 'HTML',
-    ...markupTasks,
-  });
+  prevMessage
+    ? await ctx.editMessageText(ctx.i18next.t('text.tasksList', { textTasks }), {
+        parse_mode: 'HTML',
+        ...markupTasks,
+      })
+    : await ctx.replyWithHTML(ctx.i18next.t('text.tasksList', { textTasks }), {
+        parse_mode: 'HTML',
+        ...markupTasks,
+      });
 };
