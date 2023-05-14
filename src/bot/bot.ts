@@ -1,74 +1,39 @@
-import { Telegraf, Scenes, session } from 'telegraf';
-import { MyContext } from '../types/context';
-
+import { session } from 'telegraf';
 import * as dotenv from 'dotenv';
 
+// Composers
 import { start } from '../composers/start.bot';
 import { tasks } from '../composers/tasks';
+import { task } from '../composers/task';
 import { language } from '../composers/language';
+import { showAvailableCommands } from '../composers/showAvailableCommands';
 
-import { createrScene } from '../scenes/createTask';
+// Stage
+import { stages } from '../scenes/stage';
 
-import { listeners } from '../listeners';
+// Listeners
+import { listeners } from '../listeners/inlineMenuButtons';
 
-// General
-import { generalUsage } from '../generalUsage/listeners';
-import { generalUsageCommands } from '../generalUsage/commands/commands';
-import { logger } from '../logger/pino';
+// Middlewares
+import { authorization } from '../middlewares/authorization';
+import { setupBot } from './setupBot';
 
 dotenv.config({ path: '../../.env' });
 
-let bot;
+const bot = setupBot(process.env.environment);
 
-if (process.env.environment == 'PRODUCTION') {
-  bot = new Telegraf<MyContext>(process.env.BOT_TOKEN);
-  bot.startWebhook(`/${process.env.BOT_TOKEN}`, null, 3019);
-} else {
-  bot = new Telegraf<MyContext>(process.env.BOT_TOKEN);
-}
-
-const stage = new Scenes.Stage<MyContext>([createrScene]);
-
+// Middlewares
 bot.use(session({ defaultSession: () => ({ locale: 'ru' }) }));
 bot.use(language);
-bot.use(stage.middleware());
+bot.use(stages);
+bot.use((ctx, next) => authorization(ctx, next));
 
-bot.command('create', (ctx) => ctx.scene.enter('createScene'));
-
+// Composers
 bot.use(start);
 bot.use(listeners);
 bot.use(tasks);
-
-bot.use(generalUsageCommands);
-bot.use(generalUsage);
-
-if (process.env.environment == 'PRODUCTION') {
-  bot
-    .launch({
-      webhook: {
-        domain: 'tuskery.ex1one.ru', // Your domain URL (where server code will be deployed)
-        port: 3019,
-      },
-    })
-    .then(() => {
-      logger.info(`The bot ${bot.botInfo.username} is running on server`);
-    });
-} else {
-  // if local use Long-polling
-  bot.launch().then(() => {
-    logger.info(`The bot ${bot.botInfo.username} is running locally`);
-  });
-}
-
-bot.catch(async (error, ctx) => {
-  bot.stop();
-
-  console.error(error);
-
-  await ctx.replyWithHTML(`Произошла ошибка - ${error}`);
-
-  bot.launch();
-}); // Handle Error
+bot.use(task);
+bot.use(showAvailableCommands);
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));

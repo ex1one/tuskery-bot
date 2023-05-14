@@ -1,5 +1,5 @@
 import { Composer } from 'telegraf';
-import { MyContext } from '../../types/context';
+import { MyContext } from '../types/context';
 
 const composer = new Composer<MyContext>();
 
@@ -41,4 +41,4 @@ composer.on('inline_query', async (ctx) => {
   }
 });
 
-export { composer as generalUsageCommands };
+export { composer as showAvailableCommands };

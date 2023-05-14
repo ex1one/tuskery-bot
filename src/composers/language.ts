@@ -1,9 +1,12 @@
 import { Composer } from 'telegraf';
 import { i18next } from 'telegraf-i18next';
 
-import { MenuKeyboards } from '../keybords/menuKeyboards';
 import { MyContext } from '../types/context';
-import { ru, en } from '../locales';
+
+import { ru } from '../locales/ru';
+import { en } from '../locales/en';
+
+import { MenuKeyboards } from '../keybords/keyboards';
 
 const composer = new Composer<MyContext>();
 
